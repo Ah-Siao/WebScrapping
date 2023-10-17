@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import smtplib
 from email.mime.text import MIMEText
+import configparser
 house={'Amsterdam':24,'Rotterdam':25,'Utretch':27}
 msg=''
 for key,value in house.items():
@@ -23,17 +24,29 @@ for key,value in house.items():
         else:
             continue
 
-my_email='mandy209520@yahoo.com.tw'
-password='your password'
-body = MIMEText(msg)
-with smtplib.SMTP("smtp.mail.yahoo.com",port=587) as connection:
-    # encrypt the content
-    connection.starttls()
-    connection.login(user=my_email,password=password)
-    res=connection.sendmail(from_addr=my_email,
-                        to_addrs='asiaopractice@myyahoo.com',
-                        msg=f'Subject:House Available\n\n{body}.')
-    if res=={}:
-        print('Successfully send the message')
+def is_house_available():
+    if msg=='':
+        return False
     else:
-        print('Fail to send the message')
+        return True
+if is_house_available():
+    config=configparser.ConfigParser()
+    config.read('config.ini')
+    my_email=config['email']['sender_email']
+    password=config['email']['sender_password']
+    receiver_address=config['email']['receiver_address']
+    body = MIMEText(msg)
+    with smtplib.SMTP("smtp.mail.yahoo.com",port=587) as connection:
+        # encrypt the content
+        connection.starttls()
+        connection.login(user=my_email,password=password)
+        res=connection.sendmail(from_addr=my_email,
+                            to_addrs=receiver_address,
+                            msg=f'Subject:House Available\n\n{body}.')
+        if res=={}:
+            print('Successfully send the message')
+        else:
+            print('Fail to send the message')
+else:
+    print('Sorry...There is no proper house available so far...')
+
